@@ -12,6 +12,23 @@
 #define PM 5
 #define PB 6
 
+#define MIN_NB 60
+
+int min[] = {-60, 
+
+/* appartenance sur les nombres positifs : (mesure-minimum)/pas
+	pas=0.3
+	 
+	ex : 75=(0.3*50)+60 => 75-60=0.3*50 => (75-60)/0.3=50
+*/
+float appartenance(float data){
+	if(data<0){
+		fuzzy(data);
+	}else if(data>0){
+
+	}
+}
+
 int fuzzy(float data){
 	if(data==0.0){
 		return ZE;
