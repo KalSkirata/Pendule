@@ -55,36 +55,40 @@ float appartenance(float data, int phase){
 }*/
 
 float min3(float a, float b, float c){
-	float min=a;
-	if(b<min)min=b;
-	if(c<min)min=c;
-	return min;
+	return min(min(a,b),c);
 }
 
-float belonging(int phase, int x){
+float belonging(int phase, float x){
 	switch(phase){
 		case NB:
-			printf("min(1,(-60-x)/30)=%d",min(1,(-60-x)/30));
-			return max(min(1,(-60-x)/30),0);
+			printf("NB : ");
+			//printf("min(1,(-60-x)/30)=%f",min(1.0,(-60.0-x)/30.0));
+			return max(min(1.0,(-60.0-x)/30.0),0.0);
 			break;
 		case NM:
-			return max(min((x+90)/30,(-30-x)/30),0);
+			printf("NM : ");
+			return max(min((x+90.0)/30.0,(-30.0-x)/30.0),0.0);
 			break;
 		case NS:
-			return max(min((x+60)/30,(-x)/30),0);
+			printf("NS : ");
+			return max(min((x+60.0)/30.0,(-x)/30.0),0.0);
 			break;
 		case ZE:
-			return max(min((x+30)/30,(30-x)/30),0);
+			printf("ZE : ");
+			return max(min((x+30.0)/30.0,(30.0-x)/30.0),0.0);
 			break;
 		case PS:
-			return max(min3(x/30,(-x+60)/30,1),0);
+			printf("PS : ");
+			return max(min3(x/30.0,(-x+60.0)/30.0,1.0),0.0);
 			break;
 		case PM:
-			printf("min3((x-30)/30,(90-x)/30,1)=%f", min3((x-30)/30,(90-x)/30,1));
-			return max(min3((x-30)/30,(90-x)/30,1),0);
+			printf("PM : ");
+			//printf("min3((%f-30)/30,(90-%f)/30,1)=%f \n", x,x,min3((x-30.0)/30.0,(90.0-x)/30.0,1.0));
+			return max(min3((x-30.0)/30.0,(90.0-x)/30.0,1.0),0.0);
 			break;
 		case PB:
-			return max(min(1,(x-60)/30),0);
+			printf("PB : ");
+			return max(min(1.0,(x-60.0)/30.0),0.0);
 			break;
 		default:
 			break;
@@ -115,8 +119,8 @@ int categorise(float data){
 
 void fuzzy(float data){
 	int i;
-	for(i=0; i<8; i++){
-		//printf("data=%f phase=%d appartenance=%f \n",data, i, appartenance(data, i));
+	for(i=0; i<7; i++){
+		printf("%f \n",belonging(i,data)*100);
 	}
 }
 
@@ -146,9 +150,6 @@ int read_csv(){
  
 int main(void){
 	//read_csv();
-	int i;
-	for(i=0; i<8; i++){
-		printf("%f \n",belonging(i,40));
-	}
+	fuzzy(60);
 	return 0;
 }
