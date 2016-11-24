@@ -15,6 +15,15 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
+//TODO fix defuzzy (retourne 0 quand un des deux param est négatif)
+
+struct rule{
+	int phase;
+	float belong;
+};
+
+typedef struct rule rule;
+
 float min3(float a, float b, float c){
 	return min(min(a,b),c);
 }
@@ -22,31 +31,24 @@ float min3(float a, float b, float c){
 float belonging(int phase, float x){
 	switch(phase){
 		case NB:
-			printf("NB : ");
 			return max(min(1.0,(-60.0-x)/30.0),0.0);
 			break;
 		case NM:
-			printf("NM : ");
 			return max(min((x+90.0)/30.0,(-30.0-x)/30.0),0.0);
 			break;
 		case NS:
-			printf("NS : ");
 			return max(min((x+60.0)/30.0,(-x)/30.0),0.0);
 			break;
 		case ZE:
-			printf("ZE : ");
 			return max(min((x+30.0)/30.0,(30.0-x)/30.0),0.0);
 			break;
 		case PS:
-			printf("PS : ");
 			return max(min3(x/30.0,(-x+60.0)/30.0,1.0),0.0);
 			break;
 		case PM:
-			printf("PM : ");
 			return max(min3((x-30.0)/30.0,(90.0-x)/30.0,1.0),0.0);
 			break;
 		case PB:
-			printf("PB : ");
 			return max(min(1.0,(x-60.0)/30.0),0.0);
 			break;
 		default:
@@ -57,8 +59,20 @@ float belonging(int phase, float x){
 void fuzzy(float data){
 	int i;
 	for(i=0; i<7; i++){
-		printf("%f \n",belonging(i,data)*100);
+		printf("fuzzy : phase=%d belong=%f \n", i, belonging(i,data)*100);
 	}
+	printf("\n");
+}
+
+void defuzzy(float angle, float speed){
+	int phase;
+	for(phase=0; phase<7; phase++){
+		rule r;
+		r.phase=phase;
+		printf("belong(angle)=%f belong(speed)=%f \n", belonging(phase, angle), belonging(phase, angle));
+		r.belong=min(belonging(phase, angle), belonging(phase, speed)); //produit cartésien
+		printf("defuzzy: phase=%d belong=%f \n", r.phase, r.belong);
+ 	}
 }
 
 int read_csv(){
@@ -88,5 +102,6 @@ int read_csv(){
 int main(void){
 	//read_csv();
 	fuzzy(60);
+	defuzzy(-50.0,20.0);
 	return 0;
 }
