@@ -15,8 +15,6 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-//TODO fix defuzzy (retourne 0 quand un des deux param est négatif)
-
 struct rule{
 	int phase;
 	float belong;
@@ -58,19 +56,23 @@ float belonging(int phase, float x){
 
 void fuzzy(float data){
 	int i;
+	printf("fuzzy(%f) : \n", data);
 	for(i=0; i<7; i++){
-		printf("fuzzy : phase=%d belong=%f \n", i, belonging(i,data)*100);
+		printf("phase=%d belong=%f \n", i, belonging(i,data)*100);
 	}
 	printf("\n");
 }
 
 void defuzzy(float angle, float speed){
 	int phase;
+	float s=speed;
+	printf("defuzzy(%f %f) : \n", angle, speed);
+	if(angle < 0 && speed > 0)s=speed*(-1);
 	for(phase=0; phase<7; phase++){
 		rule r;
 		r.phase=phase;
-		printf("belong(angle)=%f belong(speed)=%f \n", belonging(phase, angle), belonging(phase, angle));
-		r.belong=min(belonging(phase, angle), belonging(phase, speed)); //produit cartésien
+		printf("phase(%d) : belong(angle)=%f belong(speed)=%f \n", phase, belonging(phase, angle), belonging(phase, s));
+		r.belong=min(belonging(phase, angle), belonging(phase, s)); //produit cartésien
 		printf("defuzzy: phase=%d belong=%f \n", r.phase, r.belong);
  	}
 }
@@ -98,10 +100,10 @@ int read_csv(){
 	fclose (fichier);
 	return 0;
 }
- 
+
 int main(void){
 	//read_csv();
-	fuzzy(60);
+	fuzzy(-50.0);
 	defuzzy(-50.0,20.0);
 	return 0;
 }
