@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define INFO if(1) printf
+
 #define ANGLE_MAX 90
 
 #define NB 0
@@ -46,6 +48,7 @@ float belonging(int phase, float x){
 			return max(min(1.0,(x-60.0)/30.0),0.0);
 			break;
 		default:
+			return -1;
 			break;
 	}
 }
@@ -53,31 +56,32 @@ float belonging(int phase, float x){
 void fuzzy(float angle, float speed){
 	int i;
 	float s=speed;
-	printf("fuzzy(%f,%f) \n", angle, s);
+	INFO("fuzzy(%f,%f) \n", angle, s);
 	if(angle < 0 && speed > 0)s=speed*(-1);
 	for(i=0; i<7; i++){
 		fuzzy_angle[i]=belonging(i,angle)*100;
 		fuzzy_speed[i]=belonging(i,s)*100;
 	}
-	printf("\n");
+	INFO("\n");
 }
 
 void inference(){
 	int phase;
 	for(phase=0; phase<7; phase++){
-		printf("phase(%d) : belong(angle)=%f belong(speed)=%f \n", phase, fuzzy_angle[phase], fuzzy_speed[phase]);
+		INFO("phase(%d) : belong(angle)=%f belong(speed)=%f \n", phase, fuzzy_angle[phase], fuzzy_speed[phase]);
 		if(fuzzy_angle[phase]==0.0 || fuzzy_speed[phase]==0.0){
 			result_inference[phase] = fuzzy_angle[phase] + fuzzy_speed[phase];
 		}else{
 			result_inference[phase] = min(fuzzy_angle[phase], fuzzy_speed[phase]);
 		}
-		printf("inference: phase=%d belong=%f \n", phase, result_inference[phase]);
+		INFO("inference: phase=%d belong=%f \n", phase, result_inference[phase]);
  	}
+	INFO("\n");
 }
 
 void defuzzy(){
 	int i, found=0, min_range=0, max_range=0, tmp;
-	int phases[2] = {-1, -1};
+	int phases[7] = {-1, -1, -1, -1, -1, -1, -1};
 
 	float result = 0.0;
 
@@ -93,31 +97,28 @@ void defuzzy(){
 		min_range=range[phases[0]][0];
 		max_range=range[phases[0]][1];
 
-		printf("defuzzy : phase=%d min=%d max=%d \n", phases[0], min_range, max_range);
+		INFO("defuzzy : phase=%d min=%d max=%d \n", phases[0], min_range, max_range);
 
 		for(i=0; i<=(max_range-min_range)/10; i++) result+=min_range+i*10;
 		result*=result_inference[phases[0]];
 		result/=((max_range-min_range)/10)*result_inference[phases[0]];
 
-		printf("defuzzy : result = %f \n", result);
+		INFO("defuzzy : result = %f \n", result);
 	}else{
-		min_range=min(range[phases[0]][0], range[phases[1]][0]);
-		max_range=max(range[phases[0]][1], range[phases[1]][1]);
+		int nb_p;
+		for(nb_p=0; nb_p<found; nb_p++){
+			tmp=0;
+			for(i=0; i<=(range[phases[nb_p]][1]-range[phases[nb_p]][0])/10; i++) tmp+=range[phases[nb_p]][0]+i*10;
+			tmp*=result_inference[phases[nb_p]];
+			result+=tmp;
+		}
 
-		printf("defuzzy : phase=%d min=%d max=%d \n", phases[0], min_range, max_range);
-
-		for(i=0; i<=(range[phases[0]][1]-range[phases[0]][0])/10; i++) tmp+=min_range+i*10;
-		tmp*=result_inference[phases[0]];
-		result=tmp;
 		tmp=0;
+		for(nb_p=0; nb_p<found; nb_p++)
+			tmp+=((range[phases[nb_p]][1]-range[phases[nb_p]][0])/10)*result_inference[phases[nb_p]];
+		result/=tmp;
 
-		for(i=0; i<=(range[phases[0]][1]-range[phases[0]][0])/10; i++) tmp+=min_range+i*10;
-		tmp*=result_inference[phases[0]];
-		result+=tmp;
-
-		result/=((range[phases[0]][1]-range[phases[0]][0])/10)*result_inference[phases[0]]+((range[phases[1]][1]-range[phases[1]][0])/10)*result_inference[phases[1]];
-
-		printf("defuzzy : result = %f \n", result);
+		INFO("defuzzy : result = %f \n", result);
 	}
 }
 
@@ -134,7 +135,7 @@ int read_csv(){
 
 	while ((c = fgetc (fichier)) != EOF) {
 		if (c == ',' || c == '\n') {
-			printf ("%ld\n", strtol (tampon, NULL, 10));
+			INFO ("%ld\n", strtol (tampon, NULL, 10));
 			actuel = 0;
 			memset (tampon, 0, sizeof tampon);
 		} else {
@@ -145,20 +146,18 @@ int read_csv(){
 	return 0;
 }
 
-int main(void){
-	//read_csv();
-	int i;
-	float angle=-80.0, speed=-20.0;
+int main(int argc, char *argv[]){
+	if(argc < 3){
+		printf("Usage : ./pendule angle speed \n");
+		return -1;
+	}
+
+	float angle=atoi(argv[1]), speed=atoi(argv[2]);
 
 	fuzzy(angle,speed);
 
-	for(i=0; i<7; i++)
-		printf("fuzzy_angle[%d] = %f \n", i, fuzzy_angle[i]);
-
-	for(i=0; i<7; i++)
-		printf("fuzzy_speed[%d] = %f \n", i, fuzzy_speed[i]);
-
 	inference();
 	defuzzy();
+
 	return 0;
 }
